@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Todo</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+</head>
+<body>
+<ul>
+    <form action="/store" method="POST">
+        <input type="text" name="name">
+        <button type="submit">Add</button>
+    </form>
+
+    {% for todo in todos %}
+        <li>
+            <form action="/update/{{ todo.id }}" method="POST">
+                <input type="text" name="name" value="{{ todo.name }}">
+                <button type="submit">Modifier</button>
+            </form>
+            <form action="/delete/{{ todo.id }}" method="POST">
+                <button type="submit">Delete</button>
+            </form>
+        </li>
+    {% endfor %}
+</ul>
+</body>
+</html>
