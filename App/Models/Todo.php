@@ -3,34 +3,21 @@
 namespace App\Models;
 
 use DateTime;
+use JetBrains\PhpStorm\ArrayShape;
 use Src\Model\Model;
 use App\Managers\TodoManager;
 
 class Todo extends Model
 {
-    /**
-     * @var int
-     */
-    private $id;
+    private ?int $id = null;
 
-    /**
-     * @var string
-     */
-    private $name;
+    private string $name;
 
-    /**
-     * @var DateTime
-     */
-    private $createdAt;
+    private DateTime $createdAt;
 
-    /**
-     * @var DateTime
-     */
-    private $updatedAt;
+    private DateTime $updatedAt;
 
-    /**
-     * @return array
-     */
+    #[ArrayShape(["table" => "string", "primaryKey" => "string", "columns" => "\string[][]"])]
     public static function metadata(): array
     {
         return [
@@ -57,73 +44,46 @@ class Todo extends Model
         ];
     }
 
-    /**
-     * @return string
-     */
     public static function getManager(): string
     {
         return TodoManager::class;
     }
 
-    /**
-     * @return ?int
-     */
     public function getId(): ?int
     {
         return $this->id;
     }
 
-    /**
-     * @param int $id
-     */
     public function setId(int $id)
     {
         $this->id = $id;
     }
 
-    /**
-     * @return string
-     */
     public function getName(): string
     {
         return $this->name;
     }
 
-    /**
-     * @param string $name
-     */
     public function setName(string $name)
     {
         $this->name = $name;
     }
 
-    /**
-     * @return DateTime
-     */
     public function getCreatedAt(): DateTime
     {
         return $this->createdAt;
     }
 
-    /**
-     * @param DateTime $createdAt
-     */
     public function setCreatedAt(DateTime $createdAt)
     {
         $this->createdAt = $createdAt;
     }
 
-    /**
-     * @return DateTime
-     */
     public function getUpdatedAt(): DateTime
     {
         return $this->updatedAt;
     }
 
-    /**
-     * @param DateTime $updatedAt
-     */
     public function setUpdatedAt(DateTime $updatedAt)
     {
         $this->updatedAt = $updatedAt;

@@ -3,53 +3,36 @@
 namespace Src\ORM;
 
 use PDO;
+use ReflectionClass;
 use ReflectionException;
 use Src\Model\Model;
 
-/**
- * @package Src\ORM
- */
-class Manager
+abstract class Manager
 {
-    /**
-     * @var PDO
-     */
-    protected $pdo;
+    protected PDO $pdo;
+
+    private string $model;
+
+    private array $metadata;
 
     /**
-     * @var string
-     */
-    private $model;
-
-    /**
-     * @var array
-     */
-    private $metadata;
-
-    /**
-     * @param PDO $pdo
-     * @param $model
      * @throws ORMException
      * @throws ReflectionException
      */
-    public function __construct(PDO $pdo, $model)
+    public function __construct(PDO $pdo, string $model)
     {
         $this->pdo = $pdo;
-        $reflectionClass = new \ReflectionClass($model);
+        $reflectionClass = new ReflectionClass($model);
         if ($reflectionClass->getParentClass()->getName() == Model::class) {
             $this->model = $model;
             $this->metadata = $this->model::metadata();
         } else {
-            throw new ORMException("Cette classe n'est pas une entité.");
+            throw new ORMException("This class is not Entity.");
         }
         $this->model = $model;
     }
 
-    /**
-     * @param $property
-     * @return int|string|null
-     */
-    public function getColumnByProperty($property)
+    public function getColumnByProperty(string $property): int|string|null
     {
         $property = lcfirst($property);
         $columns = array_keys(array_filter($this->metadata["columns"], function ($column) use ($property) {
@@ -58,26 +41,18 @@ class Manager
         return array_shift($columns);
     }
 
-    /**
-     * @param array $filters
-     * @return string
-     */
     private function where(array $filters = []): string
     {
-        if(!empty($filters)) {
+        if (!empty($filters)) {
             $conditions = [];
-            foreach($filters as $property => $value) {
-                $conditions[] = sprintf("%s = :%s",$this->getColumnByProperty($property), $property);
+            foreach ($filters as $property => $value) {
+                $conditions[] = sprintf("%s = :%s", $this->getColumnByProperty($property), $property);
             }
             return sprintf("WHERE %s", implode(" AND ", $conditions));
         }
         return "";
     }
 
-    /**
-     * @param array $sorting
-     * @return string
-     */
     private function orderBy(array $sorting = []): string
     {
         if (!empty($sorting)) {
@@ -90,10 +65,6 @@ class Manager
         return "";
     }
 
-    /**
-     * @param array $filters
-     * @return Model
-     */
     public function fetch(array $filters = []): Model
     {
         $sqlQuery = sprintf("SELECT * FROM %s %s LIMIT 0,1", $this->metadata["table"], $this->where($filters));
@@ -103,11 +74,6 @@ class Manager
         return (new $this->model())->hydrate($result);
     }
 
-    /**
-     * @param array $filters
-     * @param array $orderBy
-     * @return array
-     */
     public function fetchAll(array $filters = [], array $orderBy = []): array
     {
         $sqlQuery = sprintf("SELECT * FROM %s %s %s", $this->metadata["table"], $this->where($filters), $this->orderBy($orderBy));
@@ -121,39 +87,22 @@ class Manager
         return $data;
     }
 
-    /**
-     * @param array $filters
-     * @return Model
-     */
     public function findOneBy(array $filters = []): Model
     {
         return $this->fetch($filters);
     }
 
-    /**
-     * @param mixed $id
-     * @return Model
-     */
-    public function find($id): Model
+    public function find(int $id): Model
     {
         return $this->fetch([$this->metadata["primaryKey"] => $id]);
     }
 
-    /**
-     * @param ?array $filters
-     * @param ?array $orderBy
-     * @return array
-     */
     public function findAll(?array $filters, ?array $orderBy): array
     {
         return $this->fetchAll($filters, $orderBy);
     }
 
-    /**
-     * @param Model $model
-     * @return void
-     */
-    public function persist(Model $model)
+    public function persist(Model $model): void
     {
         if ($model->getPrimaryKey()) {
             $this->update($model);
@@ -162,11 +111,7 @@ class Manager
         }
     }
 
-    /**
-     * @param Model $model
-     * @return void
-     */
-    private function update(Model $model)
+    private function update(Model $model): void
     {
         $set = [];
         $parameters = [];
@@ -185,11 +130,7 @@ class Manager
         }
     }
 
-    /**
-     * @param Model $model
-     * @return void
-     */
-    private function insert(Model $model)
+    private function insert(Model $model): void
     {
         $set = [];
         $parameters = [];
@@ -205,11 +146,7 @@ class Manager
         $model->setPrimaryKey($this->pdo->lastInsertId());
     }
 
-    /**
-     * @param Model $model
-     * @return void
-     */
-    public function remove(Model $model)
+    public function remove(Model $model): void
     {
         $sqlQuery = sprintf("DELETE FROM %s WHERE %s = :id", $this->metadata["table"], $this->metadata["primaryKey"]);
         $statement = $this->pdo->prepare($sqlQuery);

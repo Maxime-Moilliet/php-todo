@@ -3,30 +3,17 @@
 namespace Src\Model;
 
 use DateTime;
+use Src\ORM\ORMException;
 
-/**
- * @package Src\Model
- */
 abstract class Model
 {
-    /**
-     * @var array
-     */
-    public $originalData = [];
+    public array $originalData = [];
 
-    /**
-     * @return array
-     */
     public abstract static function metadata(): array;
 
-    /**
-     * @return string
-     */
     public abstract static function getManager(): string;
 
     /**
-     * @param array $result
-     * @return Model
      * @throws ORMException
      */
     public function hydrate(array $result): Model
@@ -41,11 +28,7 @@ abstract class Model
         return $this;
     }
 
-    /**
-     * @param string $column
-     * @param mixed $value
-     */
-    private function hydrateProperty(string $column, $value)
+    private function hydrateProperty(string $column, $value): void
     {
         switch ($this::metadata()["columns"][$column]["type"]) {
             case "integer":
@@ -61,10 +44,6 @@ abstract class Model
         }
     }
 
-    /**
-     * @param string $column
-     * @return ?string
-     */
     public function getSQLValueByColumn(string $column): ?string
     {
         $value = $this->{sprintf("get%s", ucfirst($this::metadata()["columns"][$column]["property"]))}();
@@ -74,18 +53,12 @@ abstract class Model
         return $value;
     }
 
-    /**
-     * @param mixed $value
-     */
-    public function setPrimaryKey($value)
+    public function setPrimaryKey(mixed $value): void
     {
         $this->hydrateProperty($this::metadata()["primaryKey"], $value);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getPrimaryKey()
+    public function getPrimaryKey(): mixed
     {
         $primaryKeyColumn = $this::metadata()["primaryKey"];
         $property = $this::metadata()["columns"][$primaryKeyColumn]["property"];

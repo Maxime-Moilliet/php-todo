@@ -3,16 +3,18 @@
 namespace App\Controllers;
 
 use App\Models\Todo;
-use DateTime;
 use Src\Controller\Controller;
+use Src\Router\Route;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
+#[Route('/')]
 class TodoController extends Controller
 {
-    /**
-     * @return void
-     */
-    public function index()
+
+    #[Route('')]
+    public function index(): string|Response
     {
         $manager = $this->getDatabase()->getManager(Todo::class);
 //        $todos = $manager->findAll(['name' => 'text'], ['created_at', 'DESC']);
@@ -20,45 +22,29 @@ class TodoController extends Controller
         return $this->renderer->render('index', ['todos' => $todos]);
     }
 
-    /**
-     * @return void
-     */
-    public function store()
+    #[Route('store', method: 'POST')]
+    public function store(): RedirectResponse
     {
         $request = Request::createFromGlobals();
         $manager = $this->getDatabase()->getManager(Todo::class);
-        $todo = new Todo();
-        $todo->setName($request->get('name'));
-        $todo->setCreatedAt(new DateTime());
-        $todo->setUpdatedAt(new DateTime());
-        $manager->persist($todo);
-        return header('Location: /');
+        $manager->addTodo($request);
+        return $this->redirectTo('/');
     }
 
-    /**
-     * @param int $id
-     * @return void
-     */
-    public function update(int $id)
+    #[Route('update/[i:id]', method: 'POST')]
+    public function update(int $id): RedirectResponse
     {
         $request = Request::createFromGlobals();
         $manager = $this->getDatabase()->getManager(Todo::class);
-        $todo = $manager->find($id);
-        $todo->setName($request->get('name'));
-        $todo->setUpdatedAt(new DateTime());
-        $manager->persist($todo);
-        return header('Location: /');
+        $manager->updateTodo($request, $id);
+        return $this->redirectTo('/');
     }
 
-    /**
-     * @param int $id
-     * @return void
-     */
-    public function delete(int $id)
+    #[Route('delete/[i:id]', method: 'POST')]
+    public function delete(int $id): RedirectResponse
     {
         $manager = $this->getDatabase()->getManager(Todo::class);
-        $todo = $manager->find($id);
-        $manager->remove($todo);
-        return header('Location: /');
+        $manager->removeTodo($id);
+        return $this->redirectTo('/');
     }
 }

@@ -4,21 +4,13 @@ namespace Src\Controller;
 
 use Src\ORM\Database;
 use Src\Renderer\TwigRenderer;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
-/**
- * @package Src\Controller
- */
-class Controller
+abstract class Controller
 {
-    /**
-     * @var TwigRenderer
-     */
-    protected $renderer;
+    protected TwigRenderer $renderer;
 
-    /**
-     * @var Database
-     */
-    private $database;
+    private Database $database;
 
     public function __construct()
     {
@@ -26,11 +18,13 @@ class Controller
         $this->database = Database::getInstance();
     }
 
-    /**
-     * @return Database
-     */
     protected function getDatabase(): Database
     {
         return $this->database;
+    }
+
+    public function redirectTo(string $path): RedirectResponse
+    {
+        return (new RedirectResponse($path))->send();
     }
 }
